@@ -1,7 +1,5 @@
 using Platform;
 
-using Microsoft.Extensions.Options;
-using Platform;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,25 +11,29 @@ builder.Services.Configure<MessageOptions>(options =>
 
 
 var app = builder.Build();
-/*
-    app.Map("/branch", branch =>
-    {
-        branch.Run(new QueryStringMiddleware().Invoke);
-    });
-    app.UseMiddleware<QueryStringMiddleware>();
-*/
-/*
-app.MapGet("/location",
-    async (HttpContext context, IOptions<MessageOptions> msgOpts) =>
-    {
-        Platform.MessageOptions opts = msgOpts.Value;
-        await context.Response.WriteAsync($"{opts.CityName},{opts.CountryName}\n");
-    });
-*/
 
+//app.UseMiddleware<Population>();
+//app.UseMiddleware<Capital>();
+app.UseRouting();
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapGet("{first}/{second}/{third}", async context =>
+    {
+        await context.Response.WriteAsync("Request was routed\n");
+        foreach (var kvp in context.Request.RouteValues)
+        {
+            await context.Response.WriteAsync($"{kvp.Key} : {kvp.Value}\n");
+        }
 
-app.UseMiddleware<LocationMiddleware>();
-app.MapGet("/", () => "Hello World!");
+    });
+    endpoints.MapGet("population/{city}", Population.EndPoint);
+    endpoints.MapGet("capital/{country}", Capital.EndPoint);
+});
+app.Run(async (context) =>
+{
+    await context.Response.WriteAsync("Terminal Middleware reached");
+});
+
 app.Run();
 
 /**
