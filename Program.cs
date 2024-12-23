@@ -3,10 +3,9 @@ using Platform;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.Configure<MessageOptions>(options =>
+builder.Services.Configure<RouteOptions>(options =>
 {
-    options.CityName = "Homs";
-
+    options.ConstraintMap.Add("countryName",typeof(CountryRouteConstraint));
 });
 
 
@@ -17,21 +16,31 @@ var app = builder.Build();
 app.UseRouting();
 app.UseEndpoints(endpoints =>
 {
-    endpoints.MapGet("{first}/{second}/{third}", async context =>
-    {
-        await context.Response.WriteAsync("Request was routed\n");
-        foreach (var kvp in context.Request.RouteValues)
-        {
-            await context.Response.WriteAsync($"{kvp.Key} : {kvp.Value}\n");
-        }
+    //endpoints.MapGet("{first:int}/{second:bool}/{*ETC..}", async context =>
+    //{
+    //    await context.Response.WriteAsync("Request was routed\n");
+    //    foreach (var kvp in context.Request.RouteValues)
+    //    {
+    //        await context.Response.WriteAsync($"{kvp.Key} : {kvp.Value}\n");
+    //    }
+    endpoints.MapGet("{capital}/{country:countryName}", Capital.EndPoint);
 
-    });
-    endpoints.MapGet("population/{city}", Population.EndPoint);
-    endpoints.MapGet("capital/{country}", Capital.EndPoint);
+    //});
+    //endpoints.MapGet("capital/{country=syria}", Capital.EndPoint);
+    endpoints.MapGet("capital/{country:regex(^syria|lebanon|damascus$)}", Capital.EndPoint);
+    endpoints.MapGet("size/{city?}", Population.EndPoint)
+    .WithMetadata(
+        new RouteNameMetadata("population")
+        );
 });
 app.Run(async (context) =>
 {
     await context.Response.WriteAsync("Terminal Middleware reached");
+});
+
+app.MapFallback(async context =>
+{
+    await context.Response.WriteAsync("Routed to fallback endpoint");
 });
 
 app.Run();
