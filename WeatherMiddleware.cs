@@ -1,11 +1,14 @@
-﻿namespace Platform
+﻿using Platform.Services;
+namespace Platform
 {
     public class WeatherMiddleware
     {
         private RequestDelegate next;
-        public WeatherMiddleware(RequestDelegate nextDelegate)
+        private readonly IResponseFormatter formatter;
+        public WeatherMiddleware(RequestDelegate nextDelegate, IResponseFormatter formatter)
         {
-            next = nextDelegate;            
+            this.formatter = formatter;
+            next = nextDelegate;
         }
         public async Task Invoke(HttpContext context)
         {

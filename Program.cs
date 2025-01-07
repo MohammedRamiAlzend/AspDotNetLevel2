@@ -8,7 +8,7 @@ builder.Services.Configure<RouteOptions>(options =>
     options.ConstraintMap.Add("countryName", typeof(CountryRouteConstraint));
 });
 */
-
+builder.Services.AddSingleton<IResponseFormatter, HtmlResponseFormatter>();
 var app = builder.Build();
 /*
 app.Use(async (context, next) =>
@@ -45,18 +45,26 @@ app.MapFallback(async context =>
 */
 
 app.UseMiddleware<WeatherMiddleware>();
-IResponseFormatter formatter = new TextResponseFormatter();
-app.MapGet("middleware/function", async (context) =>
+//IResponseFormatter formatter = new TextResponseFormatter();
+app.MapGet("middleware/function", async (HttpContext context,IResponseFormatter formatter) =>
 {
-    await formatter.Format(context,"Middleware Function: This is the middleware form program");
+    //await TextResponseFormatter.singleton.Format(context,
+    await formatter.Format(context,
+        "Middleware Function: This is the middleware form program");
 });
 
 app.MapGet("endpoint/class", WeatherEndpoint.EndPoint);
+
+/*
 app.MapGet("endpoint/function", async (context) =>
 {
-    await context.Response.WriteAsync("Endpoint Function: This is the endpoint from program");
+    await TypeBroker.Formatter.Format(context,"Endpoint Function: This is the endpoint from program");
 });
-
+*/
+app.MapGet("endpoint/function", async (HttpContext context, IResponseFormatter formatter) =>
+{
+    await formatter.Format(context,"Endpoint Function: This is the endpoint from program");
+});
 
 app.Run();
 
