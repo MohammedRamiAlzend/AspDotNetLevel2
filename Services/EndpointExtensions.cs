@@ -14,9 +14,18 @@ namespace Microsoft.AspNetCore.Builder
                 throw new Exception("Method cannot be used");
             }
             T endPointInstance = ActivatorUtilities.CreateInstance<T>(app.ServiceProvider);
+            ParameterInfo[] methodParameters = methodInfo.GetParameters();
+            app.MapGet(path, context =>
+            {
+                T endPointInstance = ActivatorUtilities
+                .CreateInstance<T>(context.RequestServices);
+                return (Task)(methodInfo.Invoke(endPointInstance
+                                , methodParameters.Select(p => p.ParameterType == typeof(HttpContext)
+                                ? context
+                                : context.RequestServices.GetService(p.ParameterType)).ToArray()
+                            ))!;
 
-            app.MapGet(path, (RequestDelegate)methodInfo
-                             .CreateDelegate(typeof(RequestDelegate),endPointInstance));
+            });
         }
     }
 }

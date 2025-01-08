@@ -3,7 +3,11 @@ using Platform.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 //builder.Services.AddSingleton<IResponseFormatter, HtmlResponseFormatter>();
-builder.Services.AddTransient<IResponseFormatter, GuidService>();
+//builder.Services.AddScoped<IResponseFormatter, GuidService>();
+builder.Services.AddScoped<IResponseFormatter, TimeResponseFormatter>();
+
+builder.Services.AddScoped<ITimeStamper, DefaultTimeStamper>();
+
 var app = builder.Build();
 
 app.UseMiddleware<WeatherMiddleware>();
@@ -19,8 +23,10 @@ app.MapGet("middleware/function", async (HttpContext context, IResponseFormatter
 //app.MapEndpoint("endpoint/class");
 
 app.MapEndpoint<WeatherEndpoint>("endpoint/class");
-app.MapGet("endpoint/function", async (HttpContext context, IResponseFormatter formatter) =>
+app.MapGet("endpoint/function", async (HttpContext context) =>
 {
+    IResponseFormatter formatter = context.RequestServices
+    .GetRequiredService<IResponseFormatter>();
     await formatter.Format(context, "Endpoint Function: This is the endpoint from program");
 });
 
