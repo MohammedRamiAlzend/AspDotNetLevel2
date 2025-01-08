@@ -2,68 +2,26 @@ using Platform;
 using Platform.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-/*
-builder.Services.Configure<RouteOptions>(options =>
-{
-    options.ConstraintMap.Add("countryName", typeof(CountryRouteConstraint));
-});
-*/
-builder.Services.AddSingleton<IResponseFormatter, HtmlResponseFormatter>();
+//builder.Services.AddSingleton<IResponseFormatter, HtmlResponseFormatter>();
+builder.Services.AddTransient<IResponseFormatter, GuidService>();
 var app = builder.Build();
-/*
-app.Use(async (context, next) =>
-{
-    Endpoint? end = context.GetEndpoint();
-    if (end != null)
-    {
-        await context.Response.WriteAsync($"{end.DisplayName} Selected \n");
-    }
-    else
-    {
-        await context.Response.WriteAsync("No endpoint selected");
-    }
-    await next();
-});
-
-
-app.Map("{number:int}", async context =>
-{
-    await context.Response.WriteAsync("Routing to int endpoint");
-}).Add(x =>
-{
-    ((RouteEndpointBuilder)x).Order = 0;
-    x.DisplayName = "Int EndPoint";  
-    });
-app.Map("{number:double}", async context =>
-{
-    await context.Response.WriteAsync("Routing to double endpoint");
-}).WithDisplayName("Double Endpoint").Add(x => ((RouteEndpointBuilder)x).Order = 1);
-app.MapFallback(async context =>
-{
-    await context.Response.WriteAsync("Routed to fallback endpoint");
-});
-*/
 
 app.UseMiddleware<WeatherMiddleware>();
-//IResponseFormatter formatter = new TextResponseFormatter();
-app.MapGet("middleware/function", async (HttpContext context,IResponseFormatter formatter) =>
+app.MapGet("middleware/function", async (HttpContext context, IResponseFormatter formatter) =>
 {
-    //await TextResponseFormatter.singleton.Format(context,
     await formatter.Format(context,
         "Middleware Function: This is the middleware form program");
 });
 
-app.MapGet("endpoint/class", WeatherEndpoint.EndPoint);
+//app.MapGet("endpoint/class", WeatherEndpoint.EndPoint);
 
-/*
-app.MapGet("endpoint/function", async (context) =>
-{
-    await TypeBroker.Formatter.Format(context,"Endpoint Function: This is the endpoint from program");
-});
-*/
+
+//app.MapEndpoint("endpoint/class");
+
+app.MapEndpoint<WeatherEndpoint>("endpoint/class");
 app.MapGet("endpoint/function", async (HttpContext context, IResponseFormatter formatter) =>
 {
-    await formatter.Format(context,"Endpoint Function: This is the endpoint from program");
+    await formatter.Format(context, "Endpoint Function: This is the endpoint from program");
 });
 
 app.Run();

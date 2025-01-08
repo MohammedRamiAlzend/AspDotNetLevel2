@@ -17,6 +17,7 @@ namespace Platform.Services
                     </head>
                     <body>
                         <h2>formatted response</h2>
+                        <h3>{content}</h3>
                     </body>
                     </html>
                 ");
