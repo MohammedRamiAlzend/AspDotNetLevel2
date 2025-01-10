@@ -74,6 +74,13 @@ var app = builder.Build();
 //    await formatter.Format(context, "Endpoint Function: This is the endpoint from program");
 //});
 
+
+app.MapGet("/", async context =>
+{
+    await context.Response.WriteAsync("New Example");
+});
+
+
 app.Run();
 
 /**
