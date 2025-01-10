@@ -3,8 +3,7 @@ namespace Platform.Services
 {
     public class TimeResponseFormatter : IResponseFormatter
     {
-        private ITimeStamper stamper;
-
+        private readonly ITimeStamper stamper;
         public TimeResponseFormatter(ITimeStamper stamper)
         {
             this.stamper = stamper;
