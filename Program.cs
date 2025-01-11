@@ -1,79 +1,33 @@
 using Platform;
-using Platform.Services;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
-//IWebHostEnvironment env = builder.Environment;
-//IConfiguration config = builder.Configuration;
+var serviceConfig = builder.Configuration;
 
-//builder.Services.AddScoped<IResponseFormatter,TextResponseFormatter>();
-//builder.Services.AddScoped<IResponseFormatter,HtmlResponseFormatter>();
-//builder.Services.AddScoped<IResponseFormatter,GuidService>();
-//    (serviceProvider =>
-//{
-//    string? typeName = config["services:IResponseFormatter"];
-//    return (IResponseFormatter)ActivatorUtilities.CreateInstance(serviceProvider, typeName == null ? typeof(GuidService) : Type.GetType(typeName)!);
-//});
-//builder.Services.AddScoped<ITimeStamper, DefaultTimeStamper>();
+builder.Services.Configure<MessageOptions>(serviceConfig.GetSection("Location"));
 
-//builder.Services.AddSingleton(typeof(ICollection<>),typeof(List<>));
+//use Environment to set up services
+var servicesEnv = builder.Environment;
+
 
 var app = builder.Build();
 
-//app.UseMiddleware<WeatherMiddleware>();
-//app.MapGet("single", async  context =>
-//{
-//    IResponseFormatter formatter = context.RequestServices
-//                                          .GetRequiredService<IResponseFormatter>();
-//    await formatter.Format(context,"single service");
-//});
 
-//app.MapGet("/", async context =>
-//{
-//    IResponseFormatter formatter = context.RequestServices
-//                                          .GetServices<IResponseFormatter>().First(f => f.RichOutput);
-//    await formatter.Format(context, "Multiple service");
-//});
-//app.MapGet("string", async context =>
-//{
-//    ICollection<string> collection = context.RequestServices
-//                                    .GetRequiredService<ICollection<string>>();
-
-//    collection.Add($"Request {DateTime.Now.ToLongTimeString()}");
-
-//    foreach (string str in collection)
-//    {
-//        await context.Response.WriteAsync($"String: {str}\n");
-//    }
-//});
-
-//app.MapGet("int", async context =>
-//{
-//    ICollection<int> collection = context.RequestServices
-//                                    .GetRequiredService<ICollection<int>>();
-
-//    collection.Add(collection.Count+1);
-
-//    foreach (int val in collection)
-//    {
-//        await context.Response.WriteAsync($"Int: {val}\n");
-//    }
-//});
+//use configuration settings to set up pipeline
+var pipeLineConfig = app.Configuration;
 
 
-//app.MapGet("endpoint/class", WeatherEndpoint.EndPoint);
+//use Environment to set up pipeline
+var pipeLineEnv = app.Environment;
+app.UseMiddleware<LocationMiddleware>();
 
-
-//app.MapEndpoint("endpoint/class");
-
-//app.MapEndpoint<WeatherEndpoint>("endpoint/class");
-//app.MapGet("endpoint/function", async (HttpContext context) =>
-//{
-//    IResponseFormatter formatter = context.RequestServices
-//    .GetRequiredService<IResponseFormatter>();
-//    await formatter.Format(context, "Endpoint Function: This is the endpoint from program");
-//});
-
+app.MapGet("config", async (HttpContext context, IConfiguration config , IWebHostEnvironment env) =>
+{
+    string defaultDebug = config["Logging:LogLevel:Default"];
+    await context.Response.WriteAsync($"The config setting: {defaultDebug}\n");
+    await context.Response.WriteAsync($"The new Settings is: {env.EnvironmentName }");
+});
 
 app.MapGet("/", async context =>
 {
@@ -83,14 +37,23 @@ app.MapGet("/", async context =>
 
 app.Run();
 
-/**
- * HttpContext:
-    1- connection
-    2- Request
-    3- Request Services
-    4- User
-    5- Response
-    6- Session
-    7- Features
- * 
-**/
+
+//in 52:00 session 11
+//open cmd and go to platform directory
+//check if dotnet-user-secrets is installed or not by typing
+//dotnet tool uninstall --global dotnet-user-secrets
+//then install it
+//dotnet tool install --global dotnet-user-secrets --version 3.0.0-preview-18579-0056
+//dotnet user-secrets init
+
+/*
+    PM> dotnet user-secrets set "WebService:Id" "MyAccount"
+    Successfully saved WebService:Id = MyAccount to the secret store.
+    PM> dotnet user-secrets set "WebService:key" "MySecret123$"
+    Successfully saved WebService:key = MySecret123$ to the secret store.
+    
+    PM> dotnet user-secrets list
+    WebService:key = MySecret123$
+    WebService:Id = MyAccount
+ 
+ */
