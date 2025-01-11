@@ -2,7 +2,6 @@
 {
     public class Population
     {
-
         public static async Task EndPoint(HttpContext context,ILogger<Population> logger)
         {
             logger.LogDebug($"Started processing for {context.Request.Path}");
@@ -31,7 +30,5 @@
             }
             logger.LogDebug($"end processing for {context.Request.Path}");
         }
-
-
     }
 }
