@@ -3,8 +3,9 @@
     public class Population
     {
 
-        public static async Task EndPoint(HttpContext context)
+        public static async Task EndPoint(HttpContext context,ILogger<Population> logger)
         {
+            logger.LogDebug($"Started processing for {context.Request.Path}");
             int? pop = null;
             string? city = context.Request.RouteValues["city"] as string;
             switch ((city ?? "").ToLower())
@@ -28,6 +29,7 @@
             {
                 context.Response.StatusCode = StatusCodes.Status404NotFound;
             }
+            logger.LogDebug($"end processing for {context.Request.Path}");
         }
 
 
