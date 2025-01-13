@@ -1,6 +1,14 @@
 using Platform;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+builder.Services.AddDistributedMemoryCache(
+        opts =>
+        {
+            opts.SizeLimit = 200;
+        }
+    );
 //builder.Services.AddDistributedMemoryCache();
 //builder.Services.AddHsts(opts =>
 //{
@@ -42,5 +50,5 @@ app.MapGet("/",async context =>
 {
     await context.Response.WriteAsync("Session 15");
 });
-
+app.MapEndpoint<SumEndpoint>("sum/{count:int=100000000}");
 app.Run();
