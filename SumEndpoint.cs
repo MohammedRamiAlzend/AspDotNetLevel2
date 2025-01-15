@@ -1,32 +1,29 @@
-﻿using Microsoft.Extensions.Caching.Distributed;
+﻿using System.Runtime.Serialization;
+using Microsoft.Extensions.Caching.Distributed;
+using Platform.Services;
 
 namespace Platform
 {
     public class SumEndpoint
     {
-        public async Task Endpoint(HttpContext context, IDistributedCache cache)
+        public async Task Endpoint(HttpContext context, IDistributedCache cache,IResponseFormatter formatter,LinkGenerator generator)
         {
             _ = int.TryParse((string)context.Request.RouteValues["count"], out int count);
 
-            string cachekey = $"sum_{count}";
-            string totalString = await cache.GetStringAsync(cachekey);
-            if (totalString == null)
+            long total = 0;
+            for (int i = 0; i<= count;i++)
             {
-
-                long total = 0;
-                for (int i = 0; i <= count; i++)
-                {
-                    total += i;
-                }
-                totalString = $"({DateTime.Now.ToLongTimeString()}) :{total}";
-                await cache.SetStringAsync(cachekey, totalString, new DistributedCacheEntryOptions
-                {
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(2)
-                });
+                total += i;
             }
+            string totalString = $"({DateTime.Now.ToLongTimeString()}) {total}";
+            context.Response.Headers["cach-controll"] = "public, max-age=120";
+            string? url = generator.GetPathByRouteValues(context, null, new { count = count });
+            await formatter.Format(context
+                , $"<div> ({DateTime.Now.ToLongTimeString()}) Total for {count}" +
+                $"</div><div> values : {totalString}</div>" +
+                $"<a href={url}> Reload<a/>");
+                        
 
-            await context.Response.WriteAsync($"({DateTime.Now.ToLongTimeString()}) Total for count " +
-                $"values:\n{totalString}\n");
         }
     }
 }
